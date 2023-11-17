@@ -85,7 +85,7 @@ void packetCallback(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char
     (void)pkthdr;
 
     // remove ethernet ip and udp header
-    packet += 14 + 20 + 8;
+    packet += 14 + 20 + 8;  // 14 - ethernet header, 20 - ip header, 8 - udp header
 
     // get to yiaddr
     const uint8_t *yiaddr_ptr = packet + 16;
@@ -182,10 +182,12 @@ int main(int argc, char *argv[]) {
 
     signal(SIGINT, sigint_handler);
 
-    // syslog init
+    // syslog init - see https://www.gnu.org/software/libc/manual/html_node/Syslog-Example.html
     setlogmask(LOG_UPTO(LOG_NOTICE));
     openlog("dhcp-stats", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
+    // Pcap communication was inspired by http://yuba.stanford.edu/~casado/pcap/section1.html
+    
     if (!g_args.fileName.empty()) { // read packets from file
         descr = pcap_open_offline(g_args.fileName.c_str(), errbuf);
     } else if (!g_args.interface.empty()) { // read packets from interface
@@ -200,18 +202,19 @@ int main(int argc, char *argv[]) {
 
     if (descr == NULL) {
         cout << "pcap_open_live(): " << errbuf << endl;
+        cleanup();
         exit(PCAP_OPEN);
     }
 
     if (pcap_compile(descr, &fp, "udp port 67 or udp port 68", 0, PCAP_NETMASK_UNKNOWN) == -1) {
         cerr << "Error calling pcap_compile" << endl;
-        pcap_close(descr);
+        cleanup();
         exit(PCAP_COMPILE);
     }
 
     if (pcap_setfilter(descr, &fp) == -1) {
         cerr << "Error setting filter" << endl;
-        pcap_close(descr);
+        cleanup();
         exit(PCAP_SETFILTER);
     }
 

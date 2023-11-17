@@ -1,0 +1,72 @@
+.TH DHCP-STATS 1
+
+
+.SH NAME
+dhcp-stats \- listens to DHCP traffic and collects statistics
+
+
+.SH SYNOPSIS
+.B dhcp-stats
+[\-r \fIfilename\fP] [\fB-i \fIinterface-name\fP] \fIip-prefix\fP [\fIip-prefix ... \fP]
+
+
+.SH DESCRIPTION
+.B dhcp-stats
+is a program that analyzes DHCP traffic either from a file or from a network interface and collects allocation statistics for given IP prefixes.
+
+
+.SH OPTIONS
+.TP
+.B \-r \fIfilename\fP
+Calculate stats by analyzing DHCP traffic from the file \fIfilename\fP.
+
+.TP
+.B \-i \fIinterface-name\fP
+Calculate stats by listening to the network interface \fIinterface-name\fP.
+
+.TP
+.B \-h, \-\-help
+Display help message.
+
+.TP
+\fip-prefix\fP
+IP prefix in the IPv4 CIDR notation (e.g. 192.0.2.0/24) to collect statistics for. At least one IP prefix must be specified. 
+
+
+.SH ERRORS
+.PP
+If both \fB-r\fP and \fB-i\fP options are present, it is considered an error. At least one of \fB-i\fP or \fB-r\fP must be specified.
+.PP
+The following errors may be returned by the program:
+
+.TP
+.B 1
+Invalid command line arguments.
+
+.TP
+.B 2
+Invalid IP prefix.
+
+.TP
+.B 3
+Error during pcap_open_[live|offline](). See pcap_open_live(3PCAP) and pcap_open_offline(3PCAP).
+
+.TP
+.B 4
+Error during pcap_compile(). See pcap_compile(3PCAP).
+
+.TP
+.B 5
+Error during pcap_setfilter(). See pcap_setfilter(3PCAP).
+
+
+.SH EXAMPLES
+.PP
+.B dhcp-stats \-r your_dhcp_traffic.pcap 192.1.0.0/22 192.1.0.0/24 165.69.139.0/24
+.PP
+.B dhcp-stats \-i eth0 179.24.0.0/22 170.16.1.0/24 165.69.139.0/24
+
+
+.SH AUTHOR
+.PP
+Timotej Bucka <xbucka00@stud.fit.vutbr.cz>
